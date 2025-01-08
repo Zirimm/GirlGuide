@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GirlGuide</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden; /* Prevent scrolling */
+        }
+        img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border: none;
+            position: fixed; /* Keep the image fixed in place */
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Image with an image map -->
+    <img src="image.jpg" alt="Clickable Image" usemap="#image-map">
+    <!-- Define the image map with clickable areas -->
+    
+    <map name="image-map">
+        <area shape="rect" coords="1,2,1080,1920" href="map.html" alt="Link to Page 2">
+    </map>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/image-map-resizer/1.0.10/js/imageMapResizer.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            imageMapResize();
+        });
+    </script>
+
+</body>
+</html>
