@@ -1,0 +1,14 @@
+body {
+  display: flex;
+  align-items: center;
+  min-height: 10vh;
+  position: fixed;
+}
+
+input {
+  margin-left: 100px; /* Adjust the left margin as needed */
+}
+
+h2 {
+  margin-left: 10px; /* Adjust the left margin for the heading */
+}
