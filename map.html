@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-image: url('Background.jpg');
+            /* Set the background image */
+            background-size: cover;
+            /* Cover the entire page */
+            background-position: center;
+            /* Center the image */
+            background-attachment: fixed;
+            /* Make the background fixed */
+        }
+
+        #map {
+            height: 80%;
+            /* Adjust height for mobile */
+            width: 100%;
+            /* Full width */
+            border: 1px solid #ccc;
+            margin: 0 auto;
+        }
+
+        h4 {
+            text-align: center;
+            margin: 9px 0;
+        }
+
+        #dispensers-list {
+            max-height: 40%;
+            overflow-y: auto;
+            border: black;
+            color: black;
+            margin: 10px 0;
+        }
+
+        .dispenser-item {
+            cursor: pointer;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: block;
+            border: 1px solid #000000;
+            transition: background-color 0.3s;
+        }
+
+        .dispenser-item:hover {
+            background-color: #ffff;
+            color: black;
+        }
+
+        @media (max-width: 600px) {
+            h4 {
+                font-size: 1.2em;
+            }
+
+            .dispenser-item {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<!--Navigation-->
+<section>
+    <a href="map.html">Map</a>
+    &thinsp;
+    <a href="education.html">GirlGuide Education</a>
+    &thinsp;
+    </head>
+
+    <body>
+        <div id="map"></div>
+
+        <div id="dispensers-list"></div>
+
+        <script>
+            // Initialize the map
+            const map = L.map('map').setView([-1.2854, 36.8229], 13); // Default view
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(map);
+
+            // Function to calculate distance between two coordinates (Haversine formula)
+            function calculateDistance(lat1, lng1, lat2, lng2) {
+                const R = 6371; // Radius of the Earth in km
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const distanceInKm = R * c; // Distance in km
+                return distanceInKm * 0.621371; // Convert to miles
+            }
+
+            // Function to add user location to the map
+            function addUserLocation(lat, lng) {
+                // Create a marker for the user's location
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup("You are here")
+                    .openPopup();
+                // Set the view to the user's location
+                map.setView([lat, lng], 13);
+
+                // Find the nearest dispensers
+                findNearestDispensers(lat, lng);
+            }
+
+            // Find the nearest dispensers based on user location
+            function findNearestDispensers(userLat, userLng) {
+                const locations = [
+                    {lat: -1.2854, lng: 36.8229, name: "Safaricom Dispenser"},
+                    {lat: -1.2325, lng: 36.8821, name: "East African Breweries Dispenser"},
+                    {lat: -1.2622, lng: 36.8082, name: "British High Commission Emergency Dispenser"},
+                    {lat: -1.2861, lng: 36.8195, name: "Standard Chartered Building Dispenser"},
+                    {lat: -4.0545, lng: 39.6624, name: "MSF Switzerland Dispenser"},
+                    {lat: -1.1050, lng: 37.0138, name: "Precious Blood Girls High School Dispenser"},
+                    {lat: -1.4575, lng: 37.5982, name: "Masokani Primary School Dispenser"},
+                    {lat: -1.2825, lng: 36.8233, name: "St. Joseph's Primary School Dispenser"},
+                    {lat: -1.2921, lng: 36.8219, name: "University of Nairobi Dispenser"},
+                    {lat: -1.3337, lng: 36.8677, name: "KIM-FAY EAST AFRICA"},
+                    {lat: -1.1939, lng: 36.9280, name: "Genesis Care"},
+                    {lat: -1.3136, lng: 36.7816, name: "Kibera Town Centre"},
+                    {lat: -1.3639, lng: 36.7476, name: "Shuya sanitary pads and panty liners"},
+                    {lat: -1.3639, lng: 36.7476, name: "BENSON NJAU PRIMARY"},
+                    {lat: 0.4542, lng: 36.0198, name: "Eldume Primary School"},
+                    {lat: -1.1947, lng: 36.6056, name: "GATUURA PRIMARY SCHOOL"},
+                    {lat: -1.2798, lng: 36.6899, name: "DAGORETTI SPECIAL SCHOOL"},
+                    {lat: -0.3661, lng: 35.1257, name: "Chebetet primary school"},
+                    {lat: -0.7266, lng: 37.1550, name: "Mjini Primary School"},
+                    {lat: -1.3109, lng: 36.7869, name: "Kibera Girls Soccer Academy"},
+                ];
+
+                // Calculate distances and find the nearest dispensers
+                const sortedLocations = locations.map(location => {
+                    const distance = calculateDistance(userLat, userLng, location.lat, location.lng);
+                    return {...location, distance};
+                }).sort((a, b) => a.distance - b.distance).slice(0, 10); // Get top 10 nearest
+
+                // Display the nearest dispensers in the list
+                const dispensersList = document.getElementById('dispensers-list');
+                dispensersList.innerHTML = ''; // Clear previous list
+
+                sortedLocations.forEach(location => {
+                    const item = document.createElement('div');
+                    item.className = 'dispenser-item';
+                    item.innerText = `${location.name} - ${location.distance.toFixed(2)} miles away`;
+
+                    // Click event to center the map on the selected dispenser
+                    item.addEventListener('click', () => {
+                        map.setView([location.lat, location.lng], 15); // Zoom in on the dispenser
+                        L.marker([location.lat, location.lng]).addTo(map)
+                            .bindPopup(location.name)
+                            .openPopup();
+                    });
+
+                    dispensersList.appendChild(item);
+                });
+            }
+
+            // Check if geolocation is supported
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    addUserLocation(userLat, userLng);
+                }, () => {
+                    alert("Could not get your location. Please enable location services.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        </script>
+    </body>
+
+</html>
